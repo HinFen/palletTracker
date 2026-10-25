@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Delete user {{ user.username }}?</h1>
+<p>This can't be undone. They will no longer be able to log in. Their past entries in the activity log stay, under their name. Nothing else is deleted.</p>
+<form method="post">
+  <button type="submit" class="contrast">Yes, delete this user</button>
+</form>
+<p><a href="{{ url_for('main.users') }}">No, keep them</a></p>
+{% endblock %}

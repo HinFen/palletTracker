@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Add part</h1>
+{% if step == 1 %}
+<form method="get" action="{{ url_for('main.part_new') }}">
+  <label>Job <input name="job" autofocus required></label>
+  <label>Line (leave blank if none) <input name="line"></label>
+  <button type="submit">Next</button>
+</form>
+{% else %}
+<form method="post">
+  <input type="hidden" name="number" value="{{ number }}">
+  <input type="hidden" name="line" value="{{ line }}">
+
+  <fieldset>
+    <legend>Which job?</legend>
+    {% for m in matches %}
+    <label>
+      <input type="radio" name="choice" value="{{ m.id }}" {{ 'checked' if choice == m.id|string }}>
+      {{ m.display_name }}{% if m.project %} ({{ m.project }}){% endif %} - {{ m.parts|length }} part(s)
+    </label>
+    {% endfor %}
+    <label>
+      <input type="radio" name="choice" value="new" {{ 'checked' if choice == 'new' }}>
+      {% if matches %}None of these: create a new job{% else %}No match found: create a new job{% endif %}
+      "{{ new_name }}"
+    </label>
+  </fieldset>
+
+  <details>
+    <summary>Extra details if creating a new job (optional)</summary>
+    <label>Project <input name="project" value="{{ form.get('project', '') }}"></label>
+    <label>Due date <input name="due_date" type="date" value="{{ form.get('due_date', '') }}"></label>
+  </details>
+
+  <label>Part number (optional) <input name="part_number" value="{{ form.get('part_number', '') }}"></label>
+  <label>Quantity <input name="quantity" inputmode="numeric" value="{{ form.get('quantity', '') }}" required></label>
+  <label>Stage
+    <select name="stage">
+      {% for s in stages %}<option value="{{ s }}" {{ 'selected' if form.get('stage') == s }}>{{ s }}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">Save part</button>
+</form>
+<p><a href="{{ url_for('main.part_new') }}">Start over</a></p>
+{% endif %}
+{% endblock %}

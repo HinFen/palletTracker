@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Backups</h1>
+<p>A backup is a copy of everything in the tracker: jobs, parts, pallets, zones, users, and the activity log.
+  The first visit each day makes one automatically, and the newest {{ keep }} are kept.</p>
+
+<form method="post">
+  <button type="submit">Back up now</button>
+</form>
+
+<h3>Saved backups</h3>
+{% if files %}
+<table>
+  <thead><tr><th>Made on</th><th>Size</th><th></th></tr></thead>
+  <tbody>
+  {% for name, when, size in files %}
+    <tr>
+      <td>{{ when.strftime("%b %d, %Y %I:%M %p") }}</td>
+      <td>{{ (size / 1024)|round|int }} KB</td>
+      <td><a href="{{ url_for('main.backup_download', name=name) }}">Download</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No backups yet. Press "Back up now".</p>
+{% endif %}
+
+<h3>Keeping a copy somewhere else</h3>
+<p>Backups on the same computer don't help if that computer fails.
+  {% if copy_dir %}Each backup is also copied to <strong>{{ copy_dir }}</strong>.
+  {% else %}No extra copy folder is set up. Download a backup now and then, or see HOSTING.md for how to
+  copy every backup to a USB drive or shared folder automatically.{% endif %}</p>
+<p><small>Backups are stored in: {{ folder }}. To restore one, see HOSTING.md.</small></p>
+{% endblock %}

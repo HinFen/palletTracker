@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>First-time setup</h1>
+<p>Create the first login for the tracker.</p>
+<form method="post">
+  <label>Username <input name="username" autocomplete="username" autofocus required></label>
+  <label>Password (6+ characters) <input name="password" type="password" autocomplete="new-password" required></label>
+  <label>Confirm password <input name="confirm" type="password" autocomplete="new-password" required></label>
+  <button type="submit">Create login</button>
+</form>
+{% endblock %}

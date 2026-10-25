@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Export to spreadsheet</h1>
+<p>Each button downloads a .csv file that opens in Excel. Nothing is changed in the app.</p>
+<div class="grid">
+  <a role="button" href="{{ url_for('main.export_jobs') }}">Jobs</a>
+  <a role="button" href="{{ url_for('main.export_parts') }}">Parts</a>
+  <a role="button" href="{{ url_for('main.export_pallets') }}">Pallets and what is on them</a>
+  <a role="button" class="secondary" href="{{ url_for('main.export_activity') }}">Activity log</a>
+</div>
+<ul>
+  <li><strong>Jobs:</strong> every job, shipped or not, with quantity, pallets, status, due date, and the dates it was completed, wrapped, and shipped.</li>
+  <li><strong>Parts:</strong> every part with its job, quantity, stage, how many are on pallets, taken off, or not yet on a pallet.</li>
+  <li><strong>Pallets:</strong> one row for each part on each pallet, with the pallet's zone and status. Mixed pallets include the job.</li>
+  <li><strong>Activity log:</strong> everything recorded, oldest first.</li>
+</ul>
+{% endblock %}

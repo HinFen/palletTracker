@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Zone {{ zone.name }}</h1>
+{% if zone.notes %}<p><em>{{ zone.notes }}</em></p>{% endif %}
+<p class="noprint">
+  {% if zone.map_x is not none %}<a href="{{ url_for('main.floor_map', highlight=zone.id) }}">Show on the floor map</a> &nbsp;|&nbsp; {% endif %}
+  <a href="{{ url_for('main.zone_edit', zone_id=zone.id) }}">Edit zone</a>
+</p>
+
+<h2>Pallets here ({{ pallets|length }})</h2>
+{% for pallet in pallets %}
+<h4><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a> <small>{{ pallet.status }}</small></h4>
+{% if pallet.items %}
+<table>
+  <thead><tr><th>Part</th>{% if pallet.kind == "mixed" %}<th>Job</th>{% endif %}<th>Qty</th></tr></thead>
+  <tbody>
+  {% for item in pallet.items %}
+    <tr>
+      <td>{{ item.part.part_number or "(no part number)" }}{% if item.part.finish %} ({{ item.part.finish }}){% endif %}</td>
+      {% if pallet.kind == "mixed" %}<td>{{ item.part.job.display_name }}</td>{% endif %}
+      <td>{{ item.quantity }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Nothing on this pallet.</p>
+{% endif %}
+{% else %}
+<p>No pallets in this zone.</p>
+{% endfor %}
+{% endblock %}

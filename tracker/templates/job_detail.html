@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Job {{ job.display_name }}</h1>
+<p>
+  {% if job.project %}Project: {{ job.project }}<br>{% endif %}
+  {% if job.assigned_date %}Assigned: {{ job.assigned_date.strftime("%b %d, %Y") }}<br>{% endif %}
+  {% if job.due_date %}Due: {{ job.due_date.strftime("%b %d, %Y") }}{% if job.due_note %} (<strong class="due-{{ job.due_state }}">{{ job.due_note }}</strong>){% endif %}<br>{% endif %}
+  {% if job.total_quantity %}Total quantity for all parts: {{ job.total_quantity }}
+    ({{ job.quantity_on_pallets }} on pallets)<br>{% endif %}
+  Status: {{ job.status_display }}<br>
+  Pallets: {{ job.pallet_count }}<br>
+  {% if job.completed_on %}Complete on: {{ job.completed_on.strftime("%b %d, %Y") }}<br>{% endif %}
+  {% if job.wrapped_on %}Wrapped on: {{ job.wrapped_on.strftime("%b %d, %Y") }}<br>{% endif %}
+  {% if job.shipped %}Shipped on: {{ job.shipped_on.strftime("%b %d, %Y") if job.shipped_on else "(date not recorded)" }}
+    - {{ job.pallet_count }} pallet(s) shipped<br>{% endif %}
+</p>
+<div class="grid">
+  <a role="button" href="{{ url_for('main.job_summary', job_id=job.id) }}">Summary</a>
+  <a role="button" class="secondary" href="{{ url_for('main.job_edit', job_id=job.id) }}">Edit job</a>
+  <a role="button" class="secondary outline" href="{{ url_for('main.job_delete', job_id=job.id) }}">Delete job</a>
+</div>
+{% if job.total_quantity %}
+<form method="post" action="{{ url_for('main.job_toggle_complete', job_id=job.id) }}">
+  <button type="submit" class="secondary">{{ "Reopen job" if job.complete else "Mark job complete" }}</button>
+</form>
+{% endif %}
+
+<h2>Parts</h2>
+{% if job.parts %}
+<table>
+  <thead><tr><th>Part</th><th>Qty</th><th>Stage</th><th>Complete on</th><th></th></tr></thead>
+  <tbody>
+  {% for part in job.parts %}
+    <tr>
+      <td>{{ part.part_number or "(no part number)" }}{% if part.finish %} ({{ part.finish }}){% endif %}</td>
+      <td>{{ part.quantity }}{% if part.taken_quantity %} ({{ part.taken_quantity }} taken off){% endif %}</td>
+      <td>
+        <form method="post" action="{{ url_for('main.part_stage', part_id=part.id) }}">
+          <select name="stage" onchange="this.form.submit()">
+            {% for s in stages %}<option value="{{ s }}" {{ 'selected' if s == part.stage }}>{{ s }}</option>{% endfor %}
+          </select>
+        </form>
+      </td>
+      <td>{{ part.completed_on.strftime("%b %d, %Y") if part.completed_on else "" }}</td>
+      <td><a href="{{ url_for('main.part_edit', part_id=part.id) }}">Edit</a>
+        &nbsp;|&nbsp; <a href="{{ url_for('main.audit_log', part=part.id) }}">History</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No parts yet.</p>
+{% endif %}
+
+<h3>Add a part to this job</h3>
+<form method="post" action="{{ url_for('main.job_add_part', job_id=job.id) }}">
+  <label>Part number (optional) <input name="part_number"></label>
+  <label>Quantity <input name="quantity" inputmode="numeric" required></label>
+  <label>Stage
+    <select name="stage">{% for s in stages %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select>
+  </label>
+  <button type="submit">Add part</button>
+</form>
+
+<h2>Pallets</h2>
+{% if job.all_pallets %}
+<ul>
+  {% for pallet in job.all_pallets %}
+  <li><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a>
+    - {{ pallet.status }}{% if pallet.shipped_on %} {{ pallet.shipped_on.strftime("%b %d") }}{% elif pallet.wrapped_on %} {{ pallet.wrapped_on.strftime("%b %d") }}{% endif %},
+    {{ pallet.zone.name if pallet.zone else "no zone yet" }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No pallets yet.</p>
+{% endif %}
+<form method="post" action="{{ url_for('main.job_add_pallet', job_id=job.id) }}">
+  <label>Zone for a new pallet of this job
+    <select name="zone_id">
+      <option value="">No zone yet</option>
+      {% for z in zones %}<option value="{{ z.id }}">{{ z.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">Add pallet</button>
+</form>
+<p><a role="button" class="secondary outline" href="{{ url_for('main.audit_log', job=job.id) }}">History</a></p>
+{% endblock %}

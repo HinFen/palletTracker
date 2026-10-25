@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}About - Pallet + Parts Tracker{% endblock %}
+{% block content %}
+<h1>About the Pallet + Parts Tracker</h1>
+<p>The Pallet + Parts Tracker keeps one shared record of the shop's jobs, the parts in them, the pallets those parts sit on,
+  and where each pallet is on the floor, so anyone can check from a phone or computer without walking the floor or asking around.</p>
+
+<h3>Made by</h3>
+<p style="font-size: 1.3rem"><strong>{{ author_name }}</strong><br>
+  <small>{{ workplace }}</small></p>
+{% if github_url %}
+<p><a role="button" class="secondary outline" href="{{ github_url }}" target="_blank" rel="noopener noreferrer">{{ author_name }} on GitHub</a></p>
+{% endif %}
+
+<h3>What it does</h3>
+<ul>
+  <li>Tracks jobs, one-part jobs and big jobs with lines, through each stage to shipping.</li>
+  <li>Keeps job pallets and mixed pallets, with what is on each and which zone it is in.</li>
+  <li>Shows the floor as a map of zones, with due-date warnings, search, and a history of every change.</li>
+  <li>Reads the job spreadsheet, exports to Excel, and backs itself up every day.</li>
+</ul>
+<p><small>Built with Python and Flask.</small></p>
+<p>{% if current_user.is_authenticated %}<a href="{{ url_for('main.home') }}">Back to the jobs</a>{% else %}<a href="{{ url_for('main.login') }}">Log in</a>{% endif %}</p>
+{% endblock %}

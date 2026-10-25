@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Delete {{ part.part_number or "this part" }}?</h1>
+<p>From job {{ part.job.display_name }}. This can't be undone. It will:</p>
+<ul>
+  <li>delete the part (quantity {{ part.quantity }})</li>
+  <li>take it off {{ part.pallet_items|length }} pallet(s){% if part.pallet_items %}:
+    {% for item in part.pallet_items %}{{ item.pallet.name }} ({{ item.quantity }}){{ ", " if not loop.last }}{% endfor %}{% endif %}</li>
+</ul>
+<form method="post">
+  <button type="submit" class="contrast">Yes, delete this part</button>
+</form>
+<p><a href="{{ url_for('main.part_edit', part_id=part.id) }}">No, keep it</a></p>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Activity log</h1>
+<form method="get" role="search">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search the log (job, part, pallet, zone)">
+  <select name="user">
+    <option value="">Everyone</option>
+    {% for name in usernames %}<option value="{{ name }}" {{ 'selected' if user == name }}>{{ name }}</option>{% endfor %}
+  </select>
+  {% if job_id %}<input type="hidden" name="job" value="{{ job_id }}">{% endif %}
+  {% if pallet_id %}<input type="hidden" name="pallet" value="{{ pallet_id }}">{% endif %}
+  {% if part_id %}<input type="hidden" name="part" value="{{ part_id }}">{% endif %}
+  {% if person_id %}<input type="hidden" name="person" value="{{ person_id }}">{% endif %}
+  <button type="submit">Filter</button>
+</form>
+{% if title %}
+<p>Showing the history of {{ title }}.{% if person_id %} This includes what they did and changes made to their account.{% endif %}
+  <a href="{{ url_for('main.audit_log') }}">Show everything</a></p>
+{% endif %}
+
+{% if events %}
+<table>
+  <thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>
+  <tbody>
+  {% for e in events %}
+    <tr>
+      <td>{{ e.at.strftime("%b %d, %Y %I:%M %p") if e.at else "" }}</td>
+      <td>{{ e.username }}</td>
+      <td>{{ e.summary }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p>
+  {% if page > 1 %}<a href="{{ url_for('main.audit_log', q=q or None, user=user or None, job=job_id, pallet=pallet_id, part=part_id, person=person_id, page=page - 1) }}">Newer</a>{% endif %}
+  {% if page > 1 and more %} | {% endif %}
+  {% if more %}<a href="{{ url_for('main.audit_log', q=q or None, user=user or None, job=job_id, pallet=pallet_id, part=part_id, person=person_id, page=page + 1) }}">Older</a>{% endif %}
+</p>
+{% else %}
+<p>Nothing recorded{% if q or user or job_id or pallet_id or part_id or person_id %} for that filter{% endif %}. Changes are logged from this version onward.</p>
+{% endif %}
+{% endblock %}

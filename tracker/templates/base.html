@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Pallet + Parts Tracker{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    {% if current_user.is_authenticated %}
+    <nav class="noprint">
+      <ul>
+        <li><strong><a href="{{ url_for('main.home') }}">Tracker</a></strong></li>
+        <li><a href="{{ url_for('main.job_new') }}">Add job</a></li>
+        <li><a href="{{ url_for('main.part_new') }}">Add part</a></li>
+        <li><a href="{{ url_for('main.pallets') }}">Pallets</a></li>
+        <li><a href="{{ url_for('main.zones') }}">Zones</a></li>
+        <li><a href="{{ url_for('main.floor_map') }}">Map</a></li>
+        <li><a href="{{ url_for('main.shipped_jobs') }}">Shipped</a></li>
+      </ul>
+      <ul>
+        <li>{{ current_user.username }}</li>
+        <li>
+          <form method="post" action="{{ url_for('main.logout') }}">
+            <button type="submit" class="secondary outline">Log out</button>
+          </form>
+        </li>
+      </ul>
+    </nav>
+    {% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% for m in messages %}<article class="flash">{{ m }}</article>{% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+    {% if current_user.is_authenticated %}
+    <footer class="noprint">
+      <small><a href="{{ url_for('main.audit_log') }}">Activity log</a> &middot; <a href="{{ url_for('main.users') }}">Users</a> &middot; <a href="{{ url_for('main.export') }}">Export</a> &middot; <a href="{{ url_for('main.backups_page') }}">Backups</a> &middot; <a href="{{ url_for('main.connect') }}">Connect</a></small>
+    </footer>
+    {% endif %}
+    <p class="credit"><small>Built by {{ author_name }} &middot; {{ workplace }}
+      &middot; <a href="{{ url_for('main.about') }}">About</a>{% if github_url %}
+      &middot; <a href="{{ github_url }}" target="_blank" rel="noopener noreferrer">GitHub</a>{% endif %}</small></p>
+  </main>
+</body>
+</html>

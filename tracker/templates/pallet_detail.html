@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ pallet.name }}</h1>
+<p>{% if pallet.kind == "mixed" %}Mixed pallet{% else %}Pallet of job {{ pallet.job.display_name }}{% endif %}
+  {% if pallet.wrapped_on %}<br>Wrapped on {{ pallet.wrapped_on.strftime("%b %d, %Y") }}{% endif %}
+  {% if pallet.shipped_on %}<br>Shipped on {{ pallet.shipped_on.strftime("%b %d, %Y") }}{% endif %}
+</p>
+
+{% if pallet.kind == "mixed" %}
+<form method="post" action="{{ url_for('main.pallet_rename', pallet_id=pallet.id) }}" class="noprint">
+  <label>Pallet name (same name = numbered #1, #2, ...) <input name="name" value="{{ pallet.custom_name or '' }}" placeholder="Type a name"></label>
+  <button type="submit" class="secondary">Save name</button>
+</form>
+{% endif %}
+
+<div class="grid noprint">
+  <form method="post" action="{{ url_for('main.pallet_zone', pallet_id=pallet.id) }}">
+    <label>Zone
+      <select name="zone_id" onchange="this.form.submit()">
+        <option value="">No zone yet</option>
+        {% for z in zones %}<option value="{{ z.id }}" {{ 'selected' if pallet.zone_id == z.id }}>{{ z.name }}</option>{% endfor %}
+      </select>
+    </label>
+  </form>
+  <form method="post" action="{{ url_for('main.pallet_status', pallet_id=pallet.id) }}">
+    <label>Status
+      <select name="status" onchange="this.form.submit()">
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if pallet.status == s }}>{{ s }}</option>{% endfor %}
+      </select>
+    </label>
+  </form>
+</div>
+
+{% if pallet.zone and pallet.zone.map_x is not none %}
+<p class="noprint"><a href="{{ url_for('main.floor_map', highlight=pallet.zone.id) }}">Show {{ pallet.zone.name }} on the floor map</a></p>
+{% endif %}
+
+<h2>On this pallet</h2>
+{% if pallet.items %}
+<table>
+  <thead><tr><th>Part</th><th>Job</th><th>Qty</th><th>Stage</th><th class="noprint"></th></tr></thead>
+  <tbody>
+  {% for item in pallet.items %}
+    <tr>
+      <td>{{ item.part.part_number or "(no part number)" }}{% if item.part.finish %} ({{ item.part.finish }}){% endif %}</td>
+      <td><a href="{{ url_for('main.job_detail', job_id=item.part.job_id) }}">{{ item.part.job.display_name }}</a></td>
+      <td>{{ item.quantity }}</td>
+      <td>{{ item.part.stage }}</td>
+      <td class="noprint">
+        <details>
+          <summary>Move / take off</summary>
+          <form method="post" action="{{ url_for('main.item_move', item_id=item.id) }}">
+            <label>How many <input name="quantity" inputmode="numeric" value="{{ item.quantity }}" required></label>
+            <label>Where to
+              <select name="dest">
+                <option value="remove">Take off (used up / taken away)</option>
+                <option value="new">A new pallet for this job</option>
+                {% for d in other_pallets if d.kind == 'mixed' or d.job_id == item.part.job_id %}
+                <option value="{{ d.id }}">{{ d.name }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <button type="submit">Do it</button>
+          </form>
+        </details>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Nothing on this pallet yet.</p>
+{% endif %}
+<a role="button" class="noprint" href="{{ url_for('main.pallet_add_item', pallet_id=pallet.id) }}">Add parts to this pallet</a>
+<p class="noprint"><a href="{{ url_for('main.pallet_delete', pallet_id=pallet.id) }}">Delete this pallet</a></p>
+<p class="noprint"><a role="button" class="secondary outline" href="{{ url_for('main.audit_log', pallet=pallet.id) }}">History</a></p>
+{% endblock %}

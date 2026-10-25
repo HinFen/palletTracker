@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+{% macro pallet_block(pallet, is_mixed) %}
+<h4><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a>
+  <small>{{ pallet.zone.name if pallet.zone else "no zone yet" }}, {{ pallet.status }}</small></h4>
+{% if pallet.items %}
+<table>
+  <thead><tr><th>Part</th>{% if is_mixed %}<th>Job</th>{% endif %}<th>Qty</th></tr></thead>
+  <tbody>
+  {% for item in pallet.items %}
+    <tr>
+      <td>{{ item.part.part_number or "(no part number)" }}{% if item.part.finish %} ({{ item.part.finish }}){% endif %}</td>
+      {% if is_mixed %}<td>{{ item.part.job.display_name }}</td>{% endif %}
+      <td>{{ item.quantity }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Nothing on this pallet.</p>
+{% endif %}
+{% endmacro %}
+
+<h1>All pallets by group</h1>
+<p class="noprint">
+  {% if show_shipped %}Showing shipped pallets too. <a href="{{ url_for('main.pallet_groups') }}">Hide shipped</a>
+  {% else %}Shipped pallets are hidden. <a href="{{ url_for('main.pallet_groups', shipped=1) }}">Include shipped</a>{% endif %}
+</p>
+
+<h2>Job pallets</h2>
+{% for group in job_groups %}
+<h3>{{ group.name }} - {{ group.total }} pallet{{ "" if group.total == 1 else "s" }}{% if group.not_shipped != group.total %} ({{ group.not_shipped }} not shipped){% endif %}</h3>
+{% for pallet in group.pallets %}{{ pallet_block(pallet, false) }}{% endfor %}
+{% else %}
+<p>No job pallets.</p>
+{% endfor %}
+
+<h2>Mixed pallets</h2>
+{% for group in mixed_groups %}
+<h3>{{ group.name }} - {{ group.total }} pallet{{ "" if group.total == 1 else "s" }}{% if group.not_shipped != group.total %} ({{ group.not_shipped }} not shipped){% endif %}</h3>
+{% for pallet in group.pallets %}{{ pallet_block(pallet, true) }}{% endfor %}
+{% else %}
+<p>No mixed pallets.</p>
+{% endfor %}
+
+<p class="noprint"><button type="button" class="secondary" onclick="window.print()">Print</button></p>
+{% endblock %}

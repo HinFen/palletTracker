@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "_macros.html" import sort_header %}
+<h1>Shipped jobs</h1>
+{% if jobs %}
+<table>
+  <thead>
+    <tr>
+      {{ sort_header("Job", "job", sort, direction, "main.shipped_jobs") }}
+      {{ sort_header("Part", "part", sort, direction, "main.shipped_jobs") }}
+      {{ sort_header("Qty", "qty", sort, direction, "main.shipped_jobs") }}
+      {{ sort_header("Pallets shipped", "pallets", sort, direction, "main.shipped_jobs") }}
+      {{ sort_header("Complete on", "complete", sort, direction, "main.shipped_jobs") }}
+      {{ sort_header("Wrapped on", "wrapped", sort, direction, "main.shipped_jobs") }}
+      {{ sort_header("Shipped on", "shipped", sort, direction, "main.shipped_jobs") }}
+    </tr>
+  </thead>
+  <tbody>
+  {% for job in jobs %}
+    <tr>
+      <td><a href="{{ url_for('main.job_detail', job_id=job.id) }}">{{ job.display_name }}</a></td>
+      <td>{{ job.part_display }}</td>
+      <td>{{ job.quantity_display }}</td>
+      <td>{{ job.pallet_count }}</td>
+      <td>{{ job.completed_on.strftime("%b %d, %Y") if job.completed_on else "" }}</td>
+      <td>{{ job.wrapped_on.strftime("%b %d, %Y") if job.wrapped_on else "" }}</td>
+      <td>{{ job.shipped_on.strftime("%b %d, %Y") if job.shipped_on else "" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No shipped jobs yet. A job moves here once all of its pallets are shipped.</p>
+{% endif %}
+{% endblock %}

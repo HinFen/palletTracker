@@ -1,0 +1,4 @@
+{% macro sort_header(label, key, sort, direction, endpoint, due=None) %}
+{% set next_direction = "desc" if (sort == key and direction == "asc") else "asc" %}
+<th><a href="{{ url_for(endpoint, sort=key, dir=next_direction, due=due or None) }}">{{ label }}{% if sort == key %} {{ "&#9650;"|safe if direction == "asc" else "&#9660;"|safe }}{% endif %}</a></th>
+{% endmacro %}

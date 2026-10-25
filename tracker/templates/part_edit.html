@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit part</h1>
+<p>Job {{ part.job.display_name }}</p>
+<form method="post">
+  <label>Part number (optional) <input name="part_number" value="{{ form.get('part_number', '') }}"></label>
+  <label>Quantity <input name="quantity" inputmode="numeric" value="{{ form.get('quantity', '') }}" required></label>
+  <label>Straight or bent (optional)
+    <select name="finish">
+      <option value="">Not set</option>
+      <option value="straight" {{ 'selected' if form.get('finish') == 'straight' }}>Straight</option>
+      <option value="bent" {{ 'selected' if form.get('finish') == 'bent' }}>Bent</option>
+    </select>
+  </label>
+  <button type="submit">Save part</button>
+</form>
+<p><a role="button" class="secondary outline" href="{{ url_for('main.audit_log', part=part.id) }}">History</a></p>
+<p><a href="{{ url_for('main.job_detail', job_id=part.job_id) }}">Cancel</a>
+  &nbsp;|&nbsp; <a href="{{ url_for('main.part_delete', part_id=part.id) }}">Delete this part</a></p>
+{% endblock %}

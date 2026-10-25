@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>New single-job pallet</h1>
+<p>A single-job pallet holds parts from one job. It is named after the job and numbered automatically: #1, then #2, and so on.</p>
+{% if jobs %}
+<form method="post">
+  <label>Job
+    <select name="job_id" required>
+      {% for j in jobs %}<option value="{{ j.id }}">{{ j.display_name }}{% if j.project %} ({{ j.project }}){% endif %}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Zone
+    <select name="zone_id">
+      <option value="">No zone yet</option>
+      {% for z in zones %}<option value="{{ z.id }}">{{ z.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">Create pallet</button>
+</form>
+{% else %}
+<p>There are no open jobs yet. Add a job first.</p>
+{% endif %}
+<p><a href="{{ url_for('main.pallets') }}">Cancel</a></p>
+{% endblock %}

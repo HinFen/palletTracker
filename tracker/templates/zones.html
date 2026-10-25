@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Zones</h1>
+<p class="noprint"><a href="{{ url_for('main.floor_map') }}">See the zones on the floor map</a></p>
+
+{% for zone in zones %}
+<h3><a href="{{ url_for('main.zone_detail', zone_id=zone.id) }}">{{ zone.name }}</a> <small class="noprint"><a href="{{ url_for('main.zone_edit', zone_id=zone.id) }}">Edit</a></small></h3>
+{% if zone.notes %}<p><em>{{ zone.notes }}</em></p>{% endif %}
+{% set here = zone.pallets|rejectattr('status', 'equalto', 'shipped')|list %}
+{% if here %}
+<ul>
+  {% for pallet in here %}
+  <li><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a> ({{ pallet.status }})</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>Empty.</p>
+{% endif %}
+{% endfor %}
+
+<h3>No zone yet</h3>
+{% if unplaced %}
+<ul>
+  {% for pallet in unplaced %}
+  <li><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a> ({{ pallet.status }})</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>None.</p>
+{% endif %}
+
+<hr class="noprint">
+<h3 class="noprint">Add a zone</h3>
+<form method="post" class="noprint">
+  <label>Zone name <input name="name" required></label>
+  <label>Notes (optional) <textarea name="notes" rows="2"></textarea></label>
+  <button type="submit">Add zone</button>
+</form>
+<p class="noprint"><button type="button" class="secondary" onclick="window.print()">Print</button></p>
+{% endblock %}

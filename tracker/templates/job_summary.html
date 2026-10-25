@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Summary: job {{ job.display_name }}</h1>
+<table>
+  <tbody>
+    {% if job.project %}<tr><th>Project</th><td>{{ job.project }}</td></tr>{% endif %}
+    {% if job.assigned_date %}<tr><th>Assigned</th><td>{{ job.assigned_date.strftime("%b %d, %Y") }}</td></tr>{% endif %}
+    {% if job.due_date %}<tr><th>Due</th><td>{{ job.due_date.strftime("%b %d, %Y") }}{% if job.due_note %} (<strong class="due-{{ job.due_state }}">{{ job.due_note }}</strong>){% endif %}</td></tr>{% endif %}
+    <tr><th>Status</th><td>{{ job.status_display }}</td></tr>
+    <tr><th>{{ "Total quantity" if job.total_quantity else "Quantity" }}</th><td>{{ job.quantity_display }}</td></tr>
+    <tr><th>On pallets</th><td>{{ job.quantity_on_pallets }}</td></tr>
+    <tr><th>Taken off pallets</th><td>{{ job.quantity_taken }}</td></tr>
+    <tr><th>Not yet on a pallet</th><td>{{ not_yet }}</td></tr>
+    <tr><th>Pallets</th><td>{{ job.pallet_count }}</td></tr>
+    {% if job.completed_on %}<tr><th>Complete on</th><td>{{ job.completed_on.strftime("%b %d, %Y") }}</td></tr>{% endif %}
+    {% if job.wrapped_on %}<tr><th>Wrapped on</th><td>{{ job.wrapped_on.strftime("%b %d, %Y") }}</td></tr>{% endif %}
+    {% if job.shipped_on %}<tr><th>Shipped on</th><td>{{ job.shipped_on.strftime("%b %d, %Y") }}</td></tr>{% endif %}
+  </tbody>
+</table>
+
+<h2>Parts</h2>
+{% if part_rows %}
+<table>
+  <thead><tr><th>Part</th><th>Qty</th><th>Stage</th><th>On pallets</th><th>Taken off</th><th>Not yet on a pallet</th><th>Complete on</th></tr></thead>
+  <tbody>
+  {% for row in part_rows %}
+    <tr>
+      <td>{{ row.part.part_number or "(no part number)" }}{% if row.part.finish %} ({{ row.part.finish }}){% endif %}</td>
+      <td>{{ row.part.quantity }}</td>
+      <td>{{ row.part.stage }}</td>
+      <td>{{ row.on_pallets }}</td>
+      <td>{{ row.taken }}</td>
+      <td>{{ row.remaining }}</td>
+      <td>{{ row.part.completed_on.strftime("%b %d, %Y") if row.part.completed_on else "" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No parts entered yet.</p>
+{% endif %}
+
+<h2>Pallets</h2>
+{% if pallet_rows %}
+<table>
+  <thead><tr><th>Pallet</th><th>Zone</th><th>Status</th><th>Qty of this job</th></tr></thead>
+  <tbody>
+  {% for pallet, qty in pallet_rows %}
+    <tr>
+      <td><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a></td>
+      <td>{{ pallet.zone.name if pallet.zone else "no zone yet" }}</td>
+      <td>{{ pallet.status }}{% if pallet.shipped_on %} {{ pallet.shipped_on.strftime("%b %d") }}{% elif pallet.wrapped_on %} {{ pallet.wrapped_on.strftime("%b %d") }}{% endif %}</td>
+      <td>{{ qty }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No pallets yet.</p>
+{% endif %}
+
+<p class="noprint">
+  <button type="button" class="secondary" onclick="window.print()">Print</button>
+  &nbsp;|&nbsp; <a href="{{ url_for('main.job_detail', job_id=job.id) }}">Back to the job</a>
+</p>
+{% endblock %}

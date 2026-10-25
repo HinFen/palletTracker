@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Upload job spreadsheet</h1>
+<p>Upload an Excel (.xlsx) or .csv file with one row per job line. The first row should be the column headings.</p>
+<ul>
+  <li>A row <strong>with a line</strong> becomes a job with that line and a total quantity. Its parts are entered later, when they go on a pallet.</li>
+  <li>A row <strong>without a line</strong> becomes a one-part job with its part number and quantity.</li>
+  <li>You'll check the columns, combine lines, and review everything before anything is saved.</li>
+</ul>
+<form method="post" enctype="multipart/form-data">
+  <label>Spreadsheet file <input type="file" name="file" accept=".xlsx,.xlsm,.csv" required></label>
+  <button type="submit">Upload</button>
+</form>
+{% endblock %}

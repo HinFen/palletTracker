@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Delete pallet {{ pallet.name }}?</h1>
+<p>This can't be undone. It will:</p>
+<ul>
+  <li>delete the pallet and its list of {{ pallet.items|length }} item(s)</li>
+  <li>leave the parts themselves in their jobs, but no longer on a pallet</li>
+</ul>
+<p>To keep the parts on a pallet, move them to another pallet first.</p>
+<form method="post">
+  <button type="submit" class="contrast">Yes, delete this pallet</button>
+</form>
+<p><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">No, keep it</a></p>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Delete zone {{ zone.name }}?</h1>
+<p>This can't be undone. The zone is removed and its {{ zone.pallets|length }} pallet(s) go back to "No zone yet". No pallets or parts are deleted.</p>
+<form method="post">
+  <button type="submit" class="contrast">Yes, delete this zone</button>
+</form>
+<p><a href="{{ url_for('main.zone_edit', zone_id=zone.id) }}">No, keep it</a></p>
+{% endblock %}

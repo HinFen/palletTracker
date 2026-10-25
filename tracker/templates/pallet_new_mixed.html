@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>New mixed pallet</h1>
+<p>A mixed pallet holds parts from different jobs. Give it any name that helps you find it. If a pallet with the same name already exists, this one is numbered automatically: the first is #1, the next #2, and so on.</p>
+<form method="post">
+  <label>Name <input name="name" placeholder="e.g. Small jobs shelf A" autofocus></label>
+  <label>Zone
+    <select name="zone_id">
+      <option value="">No zone yet</option>
+      {% for z in zones %}<option value="{{ z.id }}">{{ z.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <details>
+    <summary>Optional: assigned date and project (only used if you leave the name blank)</summary>
+    <label>Assigned date (week) <input name="assigned_date" type="date"></label>
+    <label>Project <input name="project"></label>
+  </details>
+  <button type="submit">Create pallet</button>
+</form>
+{% endblock %}

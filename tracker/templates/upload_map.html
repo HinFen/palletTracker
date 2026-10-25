@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Which column is which?</h1>
+<p>File: {{ filename }}. I guessed the columns from their headings. Fix any that are wrong.</p>
+
+<form method="post">
+  {% for field, label in fields %}
+  <label>{{ label }}{% if field == "job" %} (required){% endif %}
+    <select name="col_{{ field }}">
+      <option value="">(not in this file)</option>
+      {% for h in headers %}
+      <option value="{{ loop.index0 }}" {{ 'selected' if mapping.get(field) == loop.index0 }}>{{ h or "(blank column " ~ loop.index ~ ")" }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  {% endfor %}
+  <label>Dates written as text look like
+    <select name="date_format">
+      {% for value, text in date_formats %}<option value="{{ value }}" {{ 'selected' if date_format == value }}>{{ text }}</option>{% endfor %}
+    </select>
+  </label>
+  <small>Real Excel dates are read correctly whichever you pick.</small>
+  <button type="submit">Next: review</button>
+</form>
+
+<h3>First rows of your file</h3>
+<div style="overflow-x: auto">
+<table>
+  <thead><tr>{% for h in headers %}<th>{{ h or "(blank)" }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for row in preview %}<tr>{% for c in row %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+<p><a href="{{ url_for('main.upload') }}">Start over</a></p>
+{% endblock %}

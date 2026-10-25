@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "_macros.html" import sort_header %}
+<form method="get" action="{{ url_for('main.search') }}" role="search">
+  <input type="search" name="q" placeholder="Search job, part number, or pallet" required>
+  <button type="submit">Search</button>
+</form>
+<h1>Jobs not yet shipped</h1>
+<div class="grid">
+  <a role="button" href="{{ url_for('main.job_new') }}">Add job</a>
+  <a role="button" class="secondary" href="{{ url_for('main.part_new') }}">Add part</a>
+  <a role="button" class="secondary outline" href="{{ url_for('main.upload') }}">Upload spreadsheet</a>
+</div>
+<p>
+  {% if overdue or soon %}<strong>{{ overdue }} overdue</strong>, {{ soon }} due within {{ soon_days }} days.{% else %}Nothing overdue or due within {{ soon_days }} days.{% endif %}
+  Show:
+  {% if due == "" %}<strong>All jobs</strong>{% else %}<a href="{{ url_for('main.home') }}">All jobs</a>{% endif %} |
+  {% if due == "overdue" %}<strong>Overdue</strong>{% else %}<a href="{{ url_for('main.home', due='overdue') }}">Overdue</a>{% endif %} |
+  {% if due == "attention" %}<strong>Overdue or due soon</strong>{% else %}<a href="{{ url_for('main.home', due='attention') }}">Overdue or due soon</a>{% endif %}
+</p>
+{% if jobs %}
+<table>
+  <thead><tr>
+    {{ sort_header("Job", "job", sort, direction, "main.home", due) }}
+    {{ sort_header("Part", "part", sort, direction, "main.home", due) }}
+    {{ sort_header("Qty", "qty", sort, direction, "main.home", due) }}
+    {{ sort_header("Pallets", "pallets", sort, direction, "main.home", due) }}
+    {{ sort_header("Status", "status", sort, direction, "main.home", due) }}
+    {{ sort_header("Due", "due", sort, direction, "main.home", due) }}
+  </tr></thead>
+  <tbody>
+  {% for job in jobs %}
+    <tr class="{{ job.due_state }}">
+      <td><a href="{{ url_for('main.job_detail', job_id=job.id) }}">{{ job.display_name }}</a></td>
+      <td>{{ job.part_display }}</td>
+      <td>{{ job.quantity_display }}</td>
+      <td>{{ job.pallet_count }}</td>
+      <td>{{ job.status_display }}</td>
+      <td>{{ job.due_date.strftime("%b %d") if job.due_date else "" }}{% if job.due_note %}<br><small>{{ job.due_note }}</small>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>{% if due %}No jobs match this filter.{% else %}No jobs yet. Use Add job, or Add part to create a one-part job in one step.{% endif %}</p>
+{% endif %}
+{% endblock %}

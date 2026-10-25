@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Review upload</h1>
+<p>File: {{ filename }}. Nothing is saved until you press Apply at the bottom.</p>
+<p>{{ counts.new }} new job(s), {{ counts.changed }} changed (saved as a new copy, old job kept), {{ counts.same }} unchanged{% if counts.shipped %}, {{ counts.shipped }} already shipped (skipped){% endif %}{% if counts.duplicate %}, {{ counts.duplicate }} duplicate(s) in the file (skipped){% endif %}.</p>
+
+{% if skipped %}
+<details>
+  <summary>{{ skipped|length }} row(s) skipped</summary>
+  <ul>{% for row, reason in skipped %}<li>Row {{ row }}: {{ reason }}</li>{% endfor %}</ul>
+</details>
+{% endif %}
+{% if warned %}
+<details>
+  <summary>{{ warned|length }} row(s) imported with something ignored</summary>
+  <ul>{% for r in warned %}<li>Row {{ r.row }} (job {{ r.job }}): {{ r.warnings|join(", ") }}</li>{% endfor %}</ul>
+</details>
+{% endif %}
+
+<form method="post">
+  {% if multi %}
+  <h2>Combine lines</h2>
+  <p>Where several lines are made together, give them the same group, then type the label you want (for example 500-505).
+     Lines left as "Keep separate" stay separate jobs. Press "Update preview" to see the result.</p>
+  {% for job in multi %}
+  <h4>Job {{ job.name }}</h4>
+  <table>
+    <thead><tr><th>Row</th><th>Line</th><th>Qty</th><th>Group</th></tr></thead>
+    <tbody>
+    {% for rec in job.records %}
+      <tr>
+        <td>{{ rec.row }}</td>
+        <td>{{ rec.line }}</td>
+        <td>{{ rec.quantity if rec.quantity is not none else "" }}</td>
+        <td>
+          <select name="grp_{{ rec.row }}">
+            <option value="">Keep separate</option>
+            {% for g in group_ids %}<option value="{{ g }}" {{ 'selected' if form.get('grp_' ~ rec.row) == g }}>Group {{ g }}</option>{% endfor %}
+          </select>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="grid">
+    {% for g in job.label_groups %}
+    <label>Label for group {{ g }}
+      <input name="label_{{ job.index }}_{{ g }}" value="{{ form.get('label_' ~ job.index ~ '_' ~ g, '') }}" placeholder="e.g. 500-505">
+    </label>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <button type="submit" name="action" value="preview" class="secondary">Update preview</button>
+  {% endif %}
+
+  <h2>What will happen</h2>
+  {% if proposals %}
+  <div style="overflow-x: auto">
+  <table>
+    <thead><tr><th>Job</th><th>Part</th><th>Qty</th><th>Due</th><th>Result</th><th>Changes from the existing job</th><th>Save as copy</th></tr></thead>
+    <tbody>
+    {% for p in proposals %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.part_number or "" }}</td>
+        <td>{{ p.quantity if p.quantity is not none else "" }}</td>
+        <td>{{ p.due_date.strftime("%b %d, %Y") if p.due_date else "" }}</td>
+        <td>
+          {% if p.status == "new" %}New job
+          {% elif p.status == "same" %}No change
+          {% elif p.status == "changed" %}Changed: a new copy will be created, the old job stays
+          {% elif p.status == "shipped" %}Already shipped (skipped)
+          {% else %}Duplicate in file (skipped){% endif %}
+        </td>
+        <td>{% for c in p.changes %}{{ c.label }}: {{ c.old }} &rarr; {{ c.new }}<br>{% endfor %}</td>
+        <td>{% if p.status == "changed" %}<input type="checkbox" name="apply" value="{{ p.key }}" checked>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <button type="submit" name="action" value="apply">Apply: create the new jobs and the checked copies</button>
+  {% else %}
+  <p>There are no jobs to import from this file. Check the column choices.</p>
+  {% endif %}
+</form>
+<p><a href="{{ url_for('main.upload_map', token=token) }}">Back to column choices</a></p>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ "Edit job" if editing else "Add job" }}</h1>
+<form method="post">
+  <label>Job <input name="number" value="{{ form.get('number', '') }}" autofocus required></label>
+  <label>Line (leave blank if the job has none; type it your way, e.g. 2 or 500-505)
+    <input name="line" value="{{ form.get('line', '') }}"></label>
+  <label>Total quantity for all parts (big jobs; optional)
+    <input name="total_quantity" inputmode="numeric" value="{{ form.get('total_quantity', '') }}"></label>
+  <label>Project (optional) <input name="project" value="{{ form.get('project', '') }}"></label>
+  <label>Assigned date (optional) <input name="assigned_date" type="date" value="{{ form.get('assigned_date', '') }}"></label>
+  <label>Due date (optional) <input name="due_date" type="date" value="{{ form.get('due_date', '') }}"></label>
+  <button type="submit">Save job</button>
+</form>
+{% if editing %}<p><a href="{{ url_for('main.job_detail', job_id=editing.id) }}">Cancel</a></p>{% endif %}
+{% endblock %}

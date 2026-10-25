@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit zone</h1>
+<form method="post">
+  <label>Zone name <input name="name" value="{{ form.get('name', '') }}" required autofocus></label>
+  <label>Notes <textarea name="notes" rows="4">{{ form.get('notes', '') }}</textarea></label>
+  <button type="submit">Save zone</button>
+</form>
+<p><a href="{{ url_for('main.zones') }}">Cancel</a>
+  &nbsp;|&nbsp; <a href="{{ url_for('main.zone_delete', zone_id=zone.id) }}">Delete this zone</a></p>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Floor map</h1>
+
+{% if editing %}
+<p><strong>Editing the layout.</strong> Drag a zone, wall, rack, or machine to move it. Drag its blue corner to resize it.
+  Changes save as you let go. <a role="button" href="{{ url_for('main.floor_map') }}">Done</a></p>
+{% else %}
+<p>Tap a zone to see its pallets. Zones shaded green have pallets in them.
+  <a href="{{ url_for('main.floor_map', edit=1) }}">Edit layout</a></p>
+{% endif %}
+
+<div id="floor" class="floor {{ 'editing' if editing }}">
+  {% for z in placed %}
+  <div class="zone-box {{ 'has-pallets' if counts[z.id] }} {{ 'highlight' if highlight == z.id }}"
+       data-type="zone" data-id="{{ z.id }}" data-x="{{ z.map_x }}" data-y="{{ z.map_y }}" data-w="{{ z.map_w }}" data-h="{{ z.map_h }}"
+       style="left: {{ z.map_x / width * 100 }}%; top: {{ z.map_y / height * 100 }}%; width: {{ z.map_w / width * 100 }}%; height: {{ z.map_h / height * 100 }}%;">
+    {% if editing %}
+    <span class="zone-label">{{ z.name }}<br><small>{{ counts[z.id] }}</small></span>
+    <span class="handle"></span>
+    {% else %}
+    <a class="zone-label" href="{{ url_for('main.zone_detail', zone_id=z.id) }}">{{ z.name }}<br><small>{{ counts[z.id] }} pallet{{ "" if counts[z.id] == 1 else "s" }}</small></a>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% for o in objects %}
+  <div class="obstacle obstacle-{{ o.kind }}"
+       data-type="object" data-id="{{ o.id }}" data-x="{{ o.x }}" data-y="{{ o.y }}" data-w="{{ o.w }}" data-h="{{ o.h }}"
+       title="{{ o.kind|capitalize }}{% if o.label %}: {{ o.label }}{% endif %}"
+       style="left: {{ o.x / width * 100 }}%; top: {{ o.y / height * 100 }}%; width: {{ o.w / width * 100 }}%; height: {{ o.h / height * 100 }}%;">
+    {% if o.label and o.kind != "wall" %}<span class="obstacle-label">{{ o.label }}</span>{% endif %}
+    {% if editing %}<span class="handle"></span>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+<p id="save-status" aria-live="polite"><small>&nbsp;</small></p>
+
+<p class="legend">
+  <span class="swatch obstacle-wall"></span> Wall
+  <span class="swatch obstacle-rack"></span> Rack
+  <span class="swatch obstacle-machine"></span> Machine
+  <span class="swatch zone-swatch"></span> Zone
+</p>
+
+{% if no_zone %}
+<p>{{ no_zone }} pallet{{ " has" if no_zone == 1 else "s have" }} no zone yet. <a href="{{ url_for('main.zones') }}">See the list</a></p>
+{% endif %}
+
+{% if editing %}
+<h3>Add a wall, rack, or machine</h3>
+<form method="post" action="{{ url_for('main.map_object_add') }}">
+  <div class="grid">
+    <label>What
+      <select name="kind">
+        <option value="wall">Wall</option>
+        <option value="rack">Rack</option>
+        <option value="machine">Machine</option>
+      </select>
+    </label>
+    <label>Name (optional, shown on racks and machines)
+      <input name="label" placeholder="e.g. Press brake">
+    </label>
+  </div>
+  <button type="submit">Add to map</button>
+</form>
+<p><small>It appears near the top left. Drag it into place, then use the blue corner to make it the right size.</small></p>
+
+{% if objects %}
+<h3>Walls, racks, and machines on the map</h3>
+<table>
+  <thead><tr><th>Type</th><th>Name</th><th></th></tr></thead>
+  <tbody>
+  {% for o in objects %}
+    <tr>
+      <td>{{ o.kind|capitalize }}</td>
+      <td>
+        <form method="post" action="{{ url_for('main.map_object_label', object_id=o.id) }}" style="margin:0">
+          <input name="label" value="{{ o.label or '' }}" placeholder="(no name)" style="margin:0">
+        </form>
+        <small>Press Enter to save a name.</small>
+      </td>
+      <td>
+        <form method="post" action="{{ url_for('main.map_object_rotate', object_id=o.id) }}" style="display:inline">
+          <button type="submit" class="secondary" style="min-height:2.5rem; padding: 0 1rem">Rotate</button>
+        </form>
+        <form method="post" action="{{ url_for('main.map_object_delete', object_id=o.id) }}" style="display:inline">
+          <button type="submit" class="secondary outline" style="min-height:2.5rem; padding: 0 1rem">Remove</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endif %}
+
+{% if unplaced %}
+<h3>Zones not on the map</h3>
+{% if editing %}
+<ul>
+  {% for z in unplaced %}
+  <li>{{ z.name }}
+    <form method="post" action="{{ url_for('main.map_place', zone_id=z.id) }}" style="display:inline">
+      <button type="submit" class="secondary" style="min-height:2.5rem; padding: 0 1rem">Place on map</button>
+    </form></li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>{% for z in unplaced %}{{ z.name }}{{ ", " if not loop.last }}{% endfor %}. Use "Edit layout" to place them.</p>
+{% endif %}
+{% endif %}
+
+{% if editing and placed %}
+<h3>Take a zone off the map</h3>
+<ul>
+  {% for z in placed %}
+  <li>{{ z.name }}
+    <form method="post" action="{{ url_for('main.map_remove', zone_id=z.id) }}" style="display:inline">
+      <button type="submit" class="secondary outline" style="min-height:2.5rem; padding: 0 1rem">Remove from map</button>
+    </form></li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if editing %}
+<script>
+(function () {
+  var WIDTH = {{ width }}, HEIGHT = {{ height }}, GRID = 10;
+  var MIN = {zone: [40, 30], object: [10, 10]};
+  var floor = document.getElementById("floor");
+  var status = document.getElementById("save-status");
+  var drag = null;
+
+  function snap(v) { return Math.round(v / GRID) * GRID; }
+  function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
+  function show(box) {
+    box.style.left = (box.dataset.x / WIDTH * 100) + "%";
+    box.style.top = (box.dataset.y / HEIGHT * 100) + "%";
+    box.style.width = (box.dataset.w / WIDTH * 100) + "%";
+    box.style.height = (box.dataset.h / HEIGHT * 100) + "%";
+  }
+
+  floor.addEventListener("pointerdown", function (e) {
+    var box = e.target.closest(".zone-box, .obstacle");
+    if (!box) return;
+    var rect = floor.getBoundingClientRect();
+    drag = {
+      box: box,
+      type: box.dataset.type,
+      resize: e.target.classList.contains("handle"),
+      sx: e.clientX, sy: e.clientY,
+      scaleX: WIDTH / rect.width, scaleY: HEIGHT / rect.height,
+      x: +box.dataset.x, y: +box.dataset.y, w: +box.dataset.w, h: +box.dataset.h
+    };
+    box.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  floor.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    var dx = (e.clientX - drag.sx) * drag.scaleX, dy = (e.clientY - drag.sy) * drag.scaleY;
+    var b = drag.box, min = MIN[drag.type];
+    if (drag.resize) {
+      b.dataset.w = clamp(snap(drag.w + dx), min[0], WIDTH - drag.x);
+      b.dataset.h = clamp(snap(drag.h + dy), min[1], HEIGHT - drag.y);
+    } else {
+      b.dataset.x = clamp(snap(drag.x + dx), 0, WIDTH - drag.w);
+      b.dataset.y = clamp(snap(drag.y + dy), 0, HEIGHT - drag.h);
+    }
+    show(b);
+  });
+
+  function finish() {
+    if (!drag) return;
+    var b = drag.box, type = drag.type;
+    drag = null;
+    status.textContent = "Saving...";
+    fetch("{{ url_for('main.map_save') }}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({type: type, id: +b.dataset.id, x: +b.dataset.x, y: +b.dataset.y, w: +b.dataset.w, h: +b.dataset.h})
+    }).then(function (r) {
+      status.textContent = r.ok ? "Saved." : "Could not save that change. Reload the page and try again.";
+    }).catch(function () {
+      status.textContent = "Could not save that change. Check the wifi connection.";
+    });
+  }
+  floor.addEventListener("pointerup", finish);
+  floor.addEventListener("pointercancel", finish);
+})();
+</script>
+{% endif %}
+{% endblock %}

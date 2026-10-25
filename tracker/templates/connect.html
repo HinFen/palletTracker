@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>How to connect</h1>
+<p>Type one of these into the browser on a phone, tablet, or computer that is on the <strong>same wifi or network</strong>
+  as this computer. Open this page on the tracker computer itself so the addresses shown are the right ones.</p>
+
+{% if addresses %}
+<h3>Address</h3>
+<ul>
+  {% for ip in addresses %}<li style="font-size: 1.4rem"><strong>http://{{ ip }}:{{ port }}</strong></li>{% endfor %}
+</ul>
+{% else %}
+<p>This computer doesn't seem to be on a network right now.</p>
+{% endif %}
+
+<h3>Or try the computer's name</h3>
+<p style="font-size: 1.2rem"><strong>http://{{ name }}:{{ port }}</strong></p>
+<p><small>This works on some networks and devices but not all, and phones often can't use it. The address above is the dependable one.</small></p>
+
+<h3>If it stops working later</h3>
+<ul>
+  <li>The address can change when the computer or the network restarts. Come back to this page on the tracker computer (or look at the window it runs in) and use the new address.</li>
+  <li>To make the address stay the same, whoever looks after the building's network can reserve it for this computer. They only need the computer's name (<strong>{{ name }}</strong>) and its physical address (on Windows: open Command Prompt and type <code>ipconfig /all</code>).</li>
+  <li>If phones can't connect even with the right address, the wifi may be set to keep devices apart (often called guest wifi or client isolation). Try the computer on the same network as the phones, or ask whoever looks after the network.</li>
+</ul>
+<p class="noprint"><button type="button" class="secondary" onclick="window.print()">Print this page</button></p>
+{% endblock %}

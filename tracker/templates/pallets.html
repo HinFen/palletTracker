@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "_macros.html" import sort_header %}
+<h1>Pallets (not shipped)</h1>
+<div class="grid">
+  <a role="button" href="{{ url_for('main.pallet_new_single') }}">New single-job pallet</a>
+  <a role="button" class="secondary" href="{{ url_for('main.pallet_new_mixed') }}">New mixed pallet</a>
+  <a role="button" class="secondary outline" href="{{ url_for('main.pallet_groups') }}">All pallets by group</a>
+</div>
+{% if pallets %}
+<table>
+  <thead><tr>
+    {{ sort_header("Pallet", "pallet", sort, direction, "main.pallets") }}
+    {{ sort_header("Zone", "zone", sort, direction, "main.pallets") }}
+    {{ sort_header("Status", "status", sort, direction, "main.pallets") }}
+    {{ sort_header("Qty", "qty", sort, direction, "main.pallets") }}
+  </tr></thead>
+  <tbody>
+  {% for pallet in pallets %}
+    <tr>
+      <td><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a></td>
+      <td>{{ pallet.zone.name if pallet.zone else "no zone yet" }}</td>
+      <td>{{ pallet.status }}</td>
+      <td>{{ pallet.items|sum(attribute="quantity") }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No pallets yet. Use the buttons above to start one.</p>
+{% endif %}
+{% endblock %}

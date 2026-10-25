@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Search</h1>
+<form method="get" action="{{ url_for('main.search') }}" role="search">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search job, part number, or pallet" autofocus required>
+  <button type="submit">Search</button>
+</form>
+
+{% if q and not (jobs or parts or pallets) %}
+<p>Nothing found for "{{ q }}".</p>
+{% endif %}
+
+{% if parts %}
+<h2>Parts</h2>
+<table>
+  <thead><tr><th>Part</th><th>Job</th><th>Qty</th><th>Stage</th><th>Where</th></tr></thead>
+  <tbody>
+  {% for part in parts %}
+    <tr>
+      <td>{{ part.part_number }}</td>
+      <td><a href="{{ url_for('main.job_detail', job_id=part.job_id) }}">{{ part.job.display_name }}</a></td>
+      <td>{{ part.quantity }}</td>
+      <td>{{ part.stage }}</td>
+      <td>
+        {% for item in part.pallet_items %}
+          <a href="{{ url_for('main.pallet_detail', pallet_id=item.pallet.id) }}">{{ item.pallet.name }}</a>
+          - {{ item.pallet.zone.name if item.pallet.zone else "no zone yet" }} ({{ item.quantity }})<br>
+        {% else %}
+          not on a pallet
+        {% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if jobs %}
+<h2>Jobs</h2>
+<table>
+  <thead><tr><th>Job</th><th>Part</th><th>Qty</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for job in jobs %}
+    <tr>
+      <td><a href="{{ url_for('main.job_detail', job_id=job.id) }}">{{ job.display_name }}</a></td>
+      <td>{{ job.part_display }}</td>
+      <td>{{ job.quantity_display }}</td>
+      <td>{{ job.status_display }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if pallets %}
+<h2>Pallets</h2>
+<table>
+  <thead><tr><th>Pallet</th><th>Zone</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for pallet in pallets %}
+    <tr>
+      <td><a href="{{ url_for('main.pallet_detail', pallet_id=pallet.id) }}">{{ pallet.name }}</a></td>
+      <td>{{ pallet.zone.name if pallet.zone else "no zone yet" }}</td>
+      <td>{{ pallet.status }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

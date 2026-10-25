@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Users</h1>
+<p>Everyone who can log in. All accounts have the same access.</p>
+
+<table>
+  <thead><tr><th>Username</th><th></th><th></th><th></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td>{{ u.username }}{% if u.id == current_user.id %} (you){% endif %}</td>
+      <td><a href="{{ url_for('main.user_edit', user_id=u.id) }}">Edit</a></td>
+      <td><a href="{{ url_for('main.audit_log', person=u.id) }}">History</a></td>
+      <td>{% if u.id != current_user.id %}<a href="{{ url_for('main.user_delete', user_id=u.id) }}">Delete</a>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h3>Add a user</h3>
+<form method="post">
+  <input type="hidden" name="action" value="add">
+  <label>Username <input name="username" autocomplete="off" required></label>
+  <label>Password (6+ characters) <input name="password" type="password" autocomplete="new-password" required></label>
+  <button type="submit">Add user</button>
+</form>
+{% endblock %}

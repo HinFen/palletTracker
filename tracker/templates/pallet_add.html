@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Add parts to {{ pallet.name }}</h1>
+{% if step == 1 %}
+<form method="get">
+  <label>Which job are the parts from?
+    <select name="job" required>
+      {% for j in jobs %}<option value="{{ j.id }}">{{ j.display_name }}{% if j.project %} ({{ j.project }}){% endif %}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">Next</button>
+</form>
+{% else %}
+<p>Job: <strong>{{ job.display_name }}</strong></p>
+{% set todo = job.parts|selectattr('remaining_quantity', 'gt', 0)|list %}
+{% if todo %}
+<article>
+  <p>Put everything left of this job on this pallet:
+    {% for p in todo %}{{ p.part_number or "(no part number)" }} ({{ p.remaining_quantity }}){{ ", " if not loop.last }}{% endfor %}</p>
+  <form method="post" action="{{ url_for('main.pallet_add_all', pallet_id=pallet.id) }}">
+    <input type="hidden" name="job_id" value="{{ job.id }}">
+    <button type="submit">Add all</button>
+  </form>
+</article>
+<p>Or add just some of it:</p>
+{% endif %}
+{% set chosen = form.get('part') or (job.parts[0].id|string if job.parts|length == 1 else 'new') %}
+<form method="post">
+  <input type="hidden" name="job_id" value="{{ job.id }}">
+  <fieldset>
+    <legend>Which part?</legend>
+    {% for p in job.parts %}
+    <label>
+      <input type="radio" name="part" value="{{ p.id }}" {{ 'checked' if chosen == p.id|string }}>
+      {{ p.part_number or "(no part number)" }}{% if p.finish %} ({{ p.finish }}){% endif %}
+      - qty {{ p.quantity }} ({{ p.quantity_on_pallets }} on pallets), {{ p.stage }}
+    </label>
+    {% endfor %}
+    <label>
+      <input type="radio" name="part" value="new" {{ 'checked' if chosen == 'new' }}>
+      A part not listed yet (new part)
+    </label>
+  </fieldset>
+
+  <label>New part: part number (optional) <input name="part_number" value="{{ form.get('part_number', '') }}"></label>
+  <fieldset>
+    <legend>New part: straight or bent</legend>
+    <label><input type="radio" name="finish" value="straight" {{ 'checked' if form.get('finish', 'straight') == 'straight' }}> Straight</label>
+    <label><input type="radio" name="finish" value="bent" {{ 'checked' if form.get('finish') == 'bent' }}> Bent</label>
+  </fieldset>
+
+  <label>Quantity going on this pallet <input name="quantity" inputmode="numeric" value="{{ form.get('quantity', '') }}" required></label>
+  <button type="submit">Put on pallet</button>
+</form>
+{% endif %}
+{% endblock %}

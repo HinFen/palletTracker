@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Delete job {{ job.display_name }}?</h1>
+<p>This can't be undone. It will:</p>
+<ul>
+  <li>delete the job and its {{ job.parts|length }} part(s)</li>
+  <li>take its parts off every pallet ({{ job.quantity_on_pallets }} pieces recorded on pallets)</li>
+  <li>delete the {{ job.pallets|length }} pallet(s) made for this job</li>
+  {% if mixed %}
+  <li>keep these mixed pallets, minus this job's parts:
+    {% for p in mixed %}{{ p.name }}{{ ", " if not loop.last }}{% endfor %}</li>
+  {% endif %}
+</ul>
+<form method="post">
+  <button type="submit" class="contrast">Yes, delete this job</button>
+</form>
+<p><a href="{{ url_for('main.job_detail', job_id=job.id) }}">No, keep it</a></p>
+{% endblock %}
