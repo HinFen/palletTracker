@@ -54,11 +54,24 @@
             <label>Where to
               <select name="dest">
                 <option value="remove">Take off (used up / taken away)</option>
-                <option value="new">A new pallet for this job</option>
-                {% for d in other_pallets if d.kind == 'mixed' or d.job_id == item.part.job_id %}
-                <option value="{{ d.id }}">{{ d.name }}</option>
-                {% endfor %}
+                <optgroup label="A new pallet">
+                  <option value="new">A new pallet for this job ({{ item.part.job.display_name }})</option>
+                  <option value="new_mixed">A new mixed pallet (type its name below)</option>
+                </optgroup>
+                <optgroup label="Another pallet of this job">
+                  {% for d in other_pallets if d.kind == 'single' and d.job_id == item.part.job_id %}
+                  <option value="{{ d.id }}">{{ d.name }} - {{ d.zone.name if d.zone else "no zone" }}, {{ d.status }}</option>
+                  {% endfor %}
+                </optgroup>
+                <optgroup label="A mixed pallet">
+                  {% for d in other_pallets if d.kind == 'mixed' %}
+                  <option value="{{ d.id }}">{{ d.name }} - {{ d.zone.name if d.zone else "no zone" }}, {{ d.status }}</option>
+                  {% endfor %}
+                </optgroup>
               </select>
+            </label>
+            <label>Name for a new mixed pallet <small>(only used if you chose "A new mixed pallet")</small>
+              <input name="new_name" placeholder="e.g. SMALL JOBS SHELF">
             </label>
             <button type="submit">Do it</button>
           </form>

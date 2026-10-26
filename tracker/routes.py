@@ -1078,7 +1078,7 @@ def item_move(item_id):
 
     dest_value = request.form.get("dest", "")
     dest = None
-    if dest_value not in ("remove", "new"):
+    if dest_value not in ("remove", "new", "new_mixed"):
         try:
             dest = db.session.get(Pallet, int(dest_value))
         except ValueError:
@@ -1093,6 +1093,14 @@ def item_move(item_id):
             return back
     elif dest_value == "new":
         dest = _new_single_pallet(job, None)
+    elif dest_value == "new_mixed":
+        new_name = _clean(request.form.get("new_name")).upper()
+        if not new_name:
+            flash("Type a name for the new mixed pallet.")
+            return back
+        dest = Pallet(kind="mixed", custom_name=new_name)
+        dest.number_in_job = _next_pallet_number(dest)  # same name as another pallet: it gets the next number
+        db.session.add(dest)
 
     item.quantity -= qty
     if item.quantity <= 0:
